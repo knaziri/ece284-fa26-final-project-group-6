@@ -70,7 +70,7 @@ def act_quantization(b):
         @staticmethod
         def forward(ctx, input, alpha):
             input=input.div(alpha)
-            input_c = input.clamp(max=1)  # Mingu edited for Alexnet
+            input_c = input.clamp(min=0, max=1)  # Mingu edited for Alexnet
             input_q = uniform_quant(input_c, b)
             ctx.save_for_backward(input, input_q)
             input_q = input_q.mul(alpha)
@@ -78,12 +78,11 @@ def act_quantization(b):
 
         @staticmethod
         def backward(ctx, grad_output):
-            grad_input = grad_output.clone()
             input, input_q = ctx.saved_tensors
             i = (input > 1.).float()
-            #grad_alpha = (grad_output * (i + (input_q - input) * (1 - i))).sum()
-            grad_alpha = (grad_output * (i + (0.0)*(1-i))).sum()
-            grad_input = grad_input*(1-i)
+            in_range = ((input >= 0.) & (input <= 1.)).float()
+            grad_alpha = (grad_output * i).sum()
+            grad_input = grad_output * in_range
             return grad_input, grad_alpha
 
     return _uq().apply

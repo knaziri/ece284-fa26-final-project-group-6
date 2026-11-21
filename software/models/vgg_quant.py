@@ -10,6 +10,10 @@ cfg = {
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG16_quant': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    # Squeezed variant for the 8x8 systolic array: features[24] is 256->8, features[27] is the
+    # squeezed 8->8 conv with no BatchNorm (conv -> relu), features[29] is 8->512.
+    # ('S', n) means a QuantConv2d with n output channels followed directly by ReLU.
+    'VGG16_quant_squeeze': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 8, ('S', 8), 512, 'M', 512, 512, 512, 'M'],
     'VGG16': ['F', 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
     'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
 }
@@ -38,6 +42,10 @@ class VGG_quant(nn.Module):
                            nn.BatchNorm2d(64),
                            nn.ReLU(inplace=True)]
                 in_channels = 64
+            elif isinstance(x, tuple) and x[0] == 'S':  # squeezed layer: conv -> relu, no BN
+                layers += [QuantConv2d(in_channels, x[1], kernel_size=3, padding=1),
+                           nn.ReLU(inplace=True)]
+                in_channels = x[1]
             else:
                 layers += [QuantConv2d(in_channels, x, kernel_size=3, padding=1),
                            nn.BatchNorm2d(x),
@@ -54,6 +62,11 @@ class VGG_quant(nn.Module):
 
 def VGG16_quant(**kwargs):
     model = VGG_quant(vgg_name = 'VGG16_quant', **kwargs)
+    return model
+
+
+def VGG16_quant_squeeze(**kwargs):
+    model = VGG_quant(vgg_name = 'VGG16_quant_squeeze', **kwargs)
     return model
 
 

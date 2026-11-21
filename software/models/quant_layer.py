@@ -70,7 +70,7 @@ def act_quantization(b):
         @staticmethod
         def forward(ctx, input, alpha):
             input=input.div(alpha)
-            input_c = input.clamp(min=0, max=1)  # Mingu edited for Alexnet
+            input_c = input.clamp(min=0, max=1)
             input_q = uniform_quant(input_c, b)
             ctx.save_for_backward(input, input_q)
             input_q = input_q.mul(alpha)

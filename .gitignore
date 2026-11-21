@@ -4,3 +4,4 @@ __pycache__/
 .ipynb_checkpoints/
 *.sw[a-p]
 .venv/
+software/result/

@@ -9,7 +9,7 @@ module core (clk, inst, ofifo_valid, D_xmem, sfp_out, reset);
 
   input  clk;
   input  reset;
-  input  [33:0] inst;
+  input  [35:0] inst;   // [33:0] = course template map, [34] sfu_wb, [35] relu (see corelet.v)
   input  [bw*row-1:0] D_xmem;
   output ofifo_valid;
   output [psum_bw*col-1:0] sfp_out;
@@ -27,7 +27,8 @@ module core (clk, inst, ofifo_valid, D_xmem, sfp_out, reset);
       .WEN(inst[18]),
       .A(inst[17:7]));
 
-  // psum SRAM (written from OFIFO, read by the SFU)
+  // psum SRAM: written from OFIFO (psum movement) or SFU (acc / ReLU store-back),
+  // read by the SFU
   sram_128b_w2048 pmem_instance (
       .CLK(clk),
       .D(D_pmem),

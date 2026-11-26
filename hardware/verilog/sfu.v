@@ -34,6 +34,7 @@ module sfu (clk, reset, acc, relu_off, psum_in, sfp_out);
   end
 
   genvar i;
+  generate
   for (i=0; i<col; i=i+1) begin : col_num
     wire signed [psum_bw-1:0] in_i = psum_in[psum_bw*(i+1)-1:psum_bw*i];
     reg  signed [psum_bw-1:0] psum_q;
@@ -50,5 +51,6 @@ module sfu (clk, reset, acc, relu_off, psum_in, sfp_out);
     assign sfp_out[psum_bw*(i+1)-1:psum_bw*i] =
         (!relu_off && psum_q[psum_bw-1]) ? {psum_bw{1'b0}} : psum_q;
   end
+  endgenerate
 
 endmodule

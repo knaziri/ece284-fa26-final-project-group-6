@@ -5,3 +5,20 @@ __pycache__/
 *.sw[a-p]
 .venv/
 software/result/
+
+# Quartus build products (regenerate with hardware/quartus/setup.tcl)
+hardware/quartus/db/
+hardware/quartus/incremental_db/
+hardware/quartus/*.log
+hardware/quartus/output_files/*.sof
+hardware/quartus/output_files/*.pin
+hardware/quartus/output_files/*.jdi
+hardware/quartus/output_files/*.sld
+hardware/quartus/output_files/*.done
+hardware/quartus/output_files/*.smsg
+hardware/quartus/output_files/*.asm.rpt
+
+# Simulation products
+hardware/compiled
+hardware/*.vcd
+hardware/*.vvp

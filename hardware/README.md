@@ -14,11 +14,11 @@ core.v            testbench-facing top: corelet + XMEM (act/weight SRAM) + PMEM 
 
 ## Instruction word (`inst[35:0]`)
 
-Bits `[33:0]` are identical to the course `core_tb.v` template. Bits `[34]` and `[35]` were added so SFU results can be stored back to PMEM.
+Bits `[33:0]` are identical to the course `core_tb.v` template. Bits `[34]` and `[35]` were added so SFU results can be stored back to PMEM. Both default to 0, which means template behavior. The unmodified template drives a 34-bit `inst_q`, which gets zero-padded on this port, and its verification section passes (16/16 matched).
 
 | bits | field | meaning |
 |---|---|---|
-| 35 | `relu` | SFU output ReLU (1 = max(0,x), 0 = raw psum) |
+| 35 | `relu_off` | 0 = `sfp_out` is ReLU(acc) (template default), 1 = raw accumulated psum |
 | 34 | `sfu_wb` | PMEM write data: 0 = OFIFO output, 1 = SFU output |
 | 33 | `acc` | SFU accumulate. First cycle of an `acc` burst **loads**, later cycles add |
 | 32 / 31 / 30:20 | `CEN_pmem` / `WEN_pmem` / `A_pmem` | psum SRAM |
@@ -28,10 +28,10 @@ Bits `[33:0]` are identical to the course `core_tb.v` template. Bits `[34]` and 
 | 3 / 2 | `l0_rd` / `l0_wr` | |
 | 1 / 0 | `execute` / `load` | |
 
-In `core_tb.v`, widen `inst_q` to `[35:0]` and add:
+To use the store-back stages in `core_tb.v`, widen `inst_q` to `[35:0]` and add:
 
 ```verilog
-assign inst_q[35] = relu_q;
+assign inst_q[35] = relu_off_q;
 assign inst_q[34] = sfu_wb_q;
 ```
 
@@ -41,8 +41,8 @@ assign inst_q[34] = sfu_wb_q;
 - **OFIFO -> PMEM:** `ofifo_rd` is registered inside `ofifo.v`, so entry *j* is on the output one cycle after `ofifo_rd`. Write PMEM (`WEN_pmem=0`, `sfu_wb=0`) one cycle behind `ofifo_rd`.
 - **Kernel load:** `l0_rd=1, load=1` for `col` cycles, then idle about `row+col` cycles before loading activations or executing. The first weight word read from L0 goes to column 0. In a weight word, row *r* sits at bits `[4r+3:4r]`.
 - **Execute:** `l0_rd=1, execute=1` for nij cycles, then idle about `row+col` cycles so the array drains into the OFIFO.
-- **SFU accumulate + store back:** read the 9 psum addresses back-to-back with `acc=1` delayed by one cycle. Then in one cycle: `acc=0, sfu_wb=1, WEN_pmem=0, A_pmem=<dst>`. `relu=1` in that cycle gives fused ReLU.
-- **Separate ReLU stage:** read 1 word, `acc=1` for 1 cycle (loads it), then store back with `relu=1, sfu_wb=1`.
+- **SFU accumulate + store back:** read the 9 psum addresses back-to-back with `acc=1` delayed by one cycle. Then in one cycle: `acc=0, sfu_wb=1, WEN_pmem=0, A_pmem=<dst>`. Use `relu_off=1` to store the raw sum, or `relu_off=0` to store with fused ReLU.
+- **Separate ReLU stage:** read 1 word, `acc=1` for 1 cycle (loads it), then store back with `relu_off=0, sfu_wb=1`.
 - The SFU no longer needs `reset` between output pixels. Global `reset` also clears PE weights and FIFOs, so only use it between kij.
 
 ## Running the smoke test
@@ -54,6 +54,13 @@ iverilog -g2012 -o smoke.vvp -c filelist tb/core_smoke_tb.v && vvp smoke.vvp
 ```
 
 This runs all 7 project stages on random data sized like `features[27]` (nij=36, kij=9) with a built-in golden, and should print `PASS: 0 mismatches`. Add `+vcd` to dump `core_smoke_tb.vcd` for waveforms. `tb/core_smoke_tb.v` is a working reference for the stage sequencing in the real `core_tb.v`.
+
+## Notes on the course `core_tb.v` template
+
+- The template never calls `$fopen` on `acc_file`. Add `acc_file = $fopen("acc_add.txt", "r");` (or whatever you name it) before the accumulation loop.
+- The template reads `acc_file` with `%11b` and does **not** skip header lines, so the address file must have no comment lines. `out.txt` does get its first 3 tokens skipped.
+- The accumulation address for onij `(o_r, o_c)` and kij `k` is `k*36 + (o_r + k/3)*6 + (o_c + k%3)`, assuming psums are stored at `kij*len_nij + nij`.
+- The template registers every inst field one cycle (`*_q`). That delay is uniform, so the relative timing rules above still hold.
 
 ## Notes
 

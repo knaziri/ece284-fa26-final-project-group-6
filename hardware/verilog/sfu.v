@@ -4,15 +4,16 @@
 //          accumulator every cycle. The first cycle of an acc burst (acc
 //          rising) LOADS psum_in instead of adding, so the accumulator never
 //          needs the global reset (which would also wipe the PE weights).
-//   relu : combinational ReLU on sfp_out. relu=0 -> raw accumulated value,
-//          relu=1 -> max(0, value). This supports both flows:
-//            (a) acc 9 psums -> store back (relu=0) -> read 1 word (acc 1 cycle)
-//                -> store back with relu=1          (separate ReLU stage)
-//            (b) acc 9 psums -> store back with relu=1 (fused ReLU)
+//   relu_off : sfp_out = max(0, value) when 0 (default, matches the course
+//          core_tb.v template, which compares sfp_out with the post-ReLU
+//          out.txt), raw accumulated value when 1. Supports both flows:
+//            (a) acc 9 psums -> store back (relu_off=1) -> read 1 word (acc 1
+//                cycle) -> store back with relu_off=0   (separate ReLU stage)
+//            (b) acc 9 psums -> store back with relu_off=0 (fused ReLU)
 //
 // sfp_out comes straight from the accumulator register, so it is stable and
 // can be written into PMEM (see the write-back mux in corelet.v).
-module sfu (clk, reset, acc, relu, psum_in, sfp_out);
+module sfu (clk, reset, acc, relu_off, psum_in, sfp_out);
 
   parameter psum_bw = 16;
   parameter col = 8;
@@ -20,7 +21,7 @@ module sfu (clk, reset, acc, relu, psum_in, sfp_out);
   input  clk;
   input  reset;
   input  acc;
-  input  relu;
+  input  relu_off;
   input  [psum_bw*col-1:0] psum_in;
   output [psum_bw*col-1:0] sfp_out;
 
@@ -47,7 +48,7 @@ module sfu (clk, reset, acc, relu, psum_in, sfp_out);
     end
 
     assign sfp_out[psum_bw*(i+1)-1:psum_bw*i] =
-        (relu && psum_q[psum_bw-1]) ? {psum_bw{1'b0}} : psum_q;
+        (!relu_off && psum_q[psum_bw-1]) ? {psum_bw{1'b0}} : psum_q;
   end
 
 endmodule

@@ -5,7 +5,8 @@
 //
 //   for each kij:  reset -> weights XMEM->L0 -> kernel load -> acts XMEM->L0
 //                  -> execute -> OFIFO->PMEM            (check every psum)
-//   for each nij:  SFU acc of 9 psums -> store back      (check raw sum)
+//   for each nij:  SFU acc of 9 psums -> check sfp_out = ReLU(sum) like the
+//                  course template -> store back raw (relu_off=1)
 //   for each nij:  SFU load 1 word -> ReLU -> store back (check ReLU)
 //
 // Run:  iverilog -g2012 -o smoke.vvp -c filelist tb/core_smoke_tb.v && vvp smoke.vvp [+vcd]
@@ -29,13 +30,13 @@ module core_smoke_tb;
   always #0.5 clk = ~clk;
 
   // ---- instruction fields (driven on negedge) ----
-  reg relu = 0, sfu_wb = 0, acc = 0;
+  reg relu_off = 0, sfu_wb = 0, acc = 0;
   reg CEN_pmem = 1, WEN_pmem = 1;  reg [10:0] A_pmem = 0;
   reg CEN_xmem = 1, WEN_xmem = 1;  reg [10:0] A_xmem = 0;
   reg ofifo_rd = 0, l0_rd = 0, l0_wr = 0, execute = 0, load = 0;
   reg [row*bw-1:0] D_xmem = 0;
 
-  wire [35:0] inst = {relu, sfu_wb, acc, CEN_pmem, WEN_pmem, A_pmem,
+  wire [35:0] inst = {relu_off, sfu_wb, acc, CEN_pmem, WEN_pmem, A_pmem,
                       CEN_xmem, WEN_xmem, A_xmem, ofifo_rd, 1'b0, 1'b0,
                       l0_rd, l0_wr, execute, load};
 
@@ -65,7 +66,7 @@ module core_smoke_tb;
 
   task clear_ctrl;
     begin
-      relu = 0; sfu_wb = 0; acc = 0;
+      relu_off = 0; sfu_wb = 0; acc = 0;
       CEN_pmem = 1; WEN_pmem = 1; CEN_xmem = 1; WEN_xmem = 1;
       ofifo_rd = 0; l0_rd = 0; l0_wr = 0; execute = 0; load = 0;
     end
@@ -191,8 +192,17 @@ module core_smoke_tb;
         else       begin CEN_pmem = 1; end
         acc = (t > 0);            // PMEM read data arrives one cycle after the address
       end
-      @(negedge clk);             // store the raw sum (no ReLU)
-      acc = 0; relu = 0; sfu_wb = 1;
+      @(negedge clk);
+      // template-style check: right after accumulation sfp_out = ReLU(sum)
+      for (c=0; c<col; c=c+1)
+        if (lane(sfp_out, c) !== (S[n][c] < 0 ? 0 : S[n][c])) begin
+          if (errors < 40)
+            $display("SFP_OUT mismatch nij=%0d col=%0d: hw=%0d exp=%0d",
+                     n, c, lane(sfp_out, c), S[n][c] < 0 ? 0 : S[n][c]);
+          errors = errors + 1;
+        end
+      // store the raw sum (ReLU bypassed)
+      acc = 0; relu_off = 1; sfu_wb = 1;
       CEN_pmem = 0; WEN_pmem = 0; A_pmem = PMEM_ACC_BASE + n;
       @(negedge clk); clear_ctrl;
     end
@@ -202,7 +212,7 @@ module core_smoke_tb;
       @(negedge clk); CEN_pmem = 0; WEN_pmem = 1; A_pmem = PMEM_ACC_BASE + n;
       @(negedge clk); CEN_pmem = 1; acc = 1;     // single-cycle burst = load
       @(negedge clk);
-      acc = 0; relu = 1; sfu_wb = 1;
+      acc = 0; relu_off = 0; sfu_wb = 1;
       CEN_pmem = 0; WEN_pmem = 0; A_pmem = PMEM_RELU_BASE + n;
       @(negedge clk); clear_ctrl;
     end
@@ -224,8 +234,8 @@ module core_smoke_tb;
         end
       end
 
-    $display("Checked %0d psums, %0d accumulated and %0d ReLU outputs (%0d negative sums).",
-             K*N*col, N*col, N*col, neg_cnt);
+    $display("Checked %0d psums, %0d sfp_out, %0d accumulated and %0d ReLU outputs (%0d negative sums).",
+             K*N*col, N*col, N*col, N*col, neg_cnt);
     if (errors == 0) $display("PASS: 0 mismatches");
     else             $display("FAIL: %0d mismatches", errors);
     $finish;

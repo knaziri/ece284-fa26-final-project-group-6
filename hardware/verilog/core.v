@@ -9,7 +9,7 @@ module core (clk, inst, ofifo_valid, D_xmem, sfp_out, reset);
 
   input  clk;
   input  reset;
-  input  [35:0] inst;   // [33:0] = course template map, [34] sfu_wb, [35] relu (see corelet.v)
+  input  [35:0] inst;   // [33:0] = course template map, [34] sfu_wb, [35] relu_off (see corelet.v)
   input  [bw*row-1:0] D_xmem;
   output ofifo_valid;
   output [psum_bw*col-1:0] sfp_out;

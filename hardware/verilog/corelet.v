@@ -1,8 +1,10 @@
 // corelet: everything that gets mapped on the FPGA (L0, MAC array, OFIFO, SFU,
 // PMEM write-back mux). The SRAMs live in core.v.
 //
-// inst map ([33:0] identical to the course core_tb.v template):
-//   [35]    relu      SFU output ReLU enable (1: max(0,x), 0: raw accumulated psum)
+// inst map ([33:0] identical to the course core_tb.v template). The two extra
+// bits default to 0 = template behaviour, so the unmodified 34-bit template
+// (zero-padded on this 36-bit port) still works:
+//   [35]    relu_off  0: sfp_out = ReLU(acc) (template default), 1: raw accumulated psum
 //   [34]    sfu_wb    PMEM write-data select (0: OFIFO output, 1: SFU output)
 //   [33]    acc       SFU accumulate (first cycle of a burst loads, then adds)
 //   [32]    CEN_pmem  [31] WEN_pmem  [30:20] A_pmem
@@ -28,7 +30,7 @@ module corelet (clk, reset, inst, l0_in, pmem_q, pmem_d, ofifo_valid, sfp_out);
   output ofifo_valid;
   output [psum_bw*col-1:0] sfp_out;
 
-  wire relu      = inst[35];
+  wire relu_off  = inst[35];
   wire sfu_wb    = inst[34];
   wire acc       = inst[33];
   wire ofifo_rd  = inst[6];
@@ -83,7 +85,7 @@ module corelet (clk, reset, inst, l0_in, pmem_q, pmem_d, ofifo_valid, sfp_out);
       .clk(clk),
       .reset(reset),
       .acc(acc),
-      .relu(relu),
+      .relu_off(relu_off),
       .psum_in(pmem_q),
       .sfp_out(sfp_out));
 

@@ -17,6 +17,8 @@ hardware/quartus/output_files/*.sld
 hardware/quartus/output_files/*.done
 hardware/quartus/output_files/*.smsg
 hardware/quartus/output_files/*.asm.rpt
+hardware/quartus/output_files/*.flow.rpt
+hardware/quartus/output_files/*.map.rpt
 
 # Simulation products
 hardware/compiled

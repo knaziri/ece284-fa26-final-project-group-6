@@ -1,0 +1,22 @@
+############ Part 2: DIFFERENTIAL, 5 passes per weight set #############
+############ psum check: all 14580 psum words matched #############
+############ Verification Start during accumulation #############
+############ sfp_out check: all 1024 outputs (y0..y3) matched #############
+############ stored outputs in PMEM: all 1024 matched #############
+
+############ Cycle count (all 9 kij, 5 passes each) ############
+  L1 (XMEM) writes, act + weight     :   1702
+  kernel XMEM -> L0                  :     90
+  kernel loading to PEs (+intermiss.) :    171
+  activation XMEM -> L0              :  15120
+  execution (+array drain)           :  20250
+  OFIFO -> PMEM                      :  15120
+  per-kij reset                      :    117
+  SFU Y0 (hi<<4 + lo) + store        :   5376
+  SFU Y1..Y3 (Y0 + dY) + store       :   9984
+  total simulated cycles             :  67946
+RESULT passes=5 array=50868 sfu=15360 l1_write=1702 total=67946 errors=0
+
+############ No error detected ##############
+########### Project Completed !! ############
+core_tb_part2.v:589: $finish called at 67967000 (1ps)

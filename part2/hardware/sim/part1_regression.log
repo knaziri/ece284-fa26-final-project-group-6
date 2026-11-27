@@ -1,0 +1,36 @@
+VCD info: dumpfile core_tb.vcd opened for output.
+############ psum check: all 324 psum words matched #############
+############ Verification Start during accumulation #############
+ 1-th output featuremap Data matched! :D
+ 2-th output featuremap Data matched! :D
+ 3-th output featuremap Data matched! :D
+ 4-th output featuremap Data matched! :D
+ 5-th output featuremap Data matched! :D
+ 6-th output featuremap Data matched! :D
+ 7-th output featuremap Data matched! :D
+ 8-th output featuremap Data matched! :D
+ 9-th output featuremap Data matched! :D
+10-th output featuremap Data matched! :D
+11-th output featuremap Data matched! :D
+12-th output featuremap Data matched! :D
+13-th output featuremap Data matched! :D
+14-th output featuremap Data matched! :D
+15-th output featuremap Data matched! :D
+16-th output featuremap Data matched! :D
+############ stored ReLU outputs in PMEM: all 16 matched #############
+
+############ Cycle count (all 9 kij) ############
+  L1 (XMEM) writes, act + weight     :    118
+  kernel XMEM -> L0                  :     90
+  kernel loading to PEs (+intermiss.) :    171
+  activation XMEM -> L0              :    342
+  execution (+array drain)           :    513
+  OFIFO -> PMEM                      :    342
+  per-kij reset                      :    117
+  SFU accumulation + store back      :    243
+  SFU ReLU + store back              :     64
+  total simulated cycles             :   2078
+
+############ No error detected ##############
+########### Project Completed !! ############
+core_tb.v:519: $finish called at 2099000 (1ps)

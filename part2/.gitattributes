@@ -1,0 +1,3 @@
+# Keep LF in shell scripts: with core.autocrlf=true, Windows checkouts would otherwise get CRLF
+# and bash fails with "$'\r': command not found"
+*.sh text eol=lf

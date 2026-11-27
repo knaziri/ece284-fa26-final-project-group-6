@@ -1,0 +1,145 @@
+{
+  "weight_source": "Part 1 weight files: ../hardware",
+  "padding": 1,
+  "k": 0,
+  "psum_bw": 16,
+  "out_bw": 24,
+  "shapes": {
+    "input": [
+      8,
+      16,
+      16
+    ],
+    "padded": [
+      8,
+      18,
+      18
+    ],
+    "nij_per_pass": 324,
+    "output": [
+      8,
+      16,
+      16
+    ],
+    "onij": 256
+  },
+  "pass_order_per_kij": [
+    "x0_hi",
+    "x0_lo",
+    "dx1",
+    "dx2",
+    "dx3"
+  ],
+  "pass_mode": {
+    "x0_hi": 0,
+    "x0_lo": 0,
+    "dx1": 1,
+    "dx2": 1,
+    "dx3": 1
+  },
+  "passes": {
+    "conventional": 8,
+    "differential": 5,
+    "reduction": 0.375,
+    "ideal_speedup": 1.6
+  },
+  "y0_exact_vs_full_ref": true,
+  "frames": {
+    "frame1": {
+      "delta_raw_range": [
+        -7,
+        7
+      ],
+      "delta_std": 2.8952009530563663,
+      "delta_zero_frac": 0.22119140625,
+      "saturation_frac": 0.0,
+      "vs_full_8bit_ref": {
+        "max_abs_err": 0,
+        "mse": 0.0,
+        "sqnr_db": Infinity,
+        "exact": true
+      }
+    },
+    "frame2": {
+      "delta_raw_range": [
+        -7,
+        7
+      ],
+      "delta_std": 2.91417601827056,
+      "delta_zero_frac": 0.23095703125,
+      "saturation_frac": 0.0,
+      "vs_full_8bit_ref": {
+        "max_abs_err": 0,
+        "mse": 0.0,
+        "sqnr_db": Infinity,
+        "exact": true
+      }
+    },
+    "frame3": {
+      "delta_raw_range": [
+        -7,
+        7
+      ],
+      "delta_std": 2.982671760927618,
+      "delta_zero_frac": 0.23779296875,
+      "saturation_frac": 0.0,
+      "vs_full_8bit_ref": {
+        "max_abs_err": 0,
+        "mse": 0.0,
+        "sqnr_db": Infinity,
+        "exact": true
+      }
+    }
+  },
+  "bit_widths_observed": {
+    "array_psum": {
+      "range": [
+        -335,
+        257
+      ],
+      "signed_bits": 10
+    },
+    "acc_x0_hi": {
+      "range": [
+        -625,
+        733
+      ],
+      "signed_bits": 11
+    },
+    "acc_x0_lo": {
+      "range": [
+        -722,
+        863
+      ],
+      "signed_bits": 11
+    },
+    "y0": {
+      "range": [
+        -10470,
+        12169
+      ],
+      "signed_bits": 15
+    },
+    "dy": {
+      "range": [
+        -328,
+        286
+      ],
+      "signed_bits": 10
+    },
+    "y1_y3": {
+      "range": [
+        -10501,
+        12197
+      ],
+      "signed_bits": 15
+    }
+  },
+  "bit_widths_worst_case": {
+    "array_psum_one_kij": 11,
+    "acc_nibble_pass": 15,
+    "y0_any_8bit_input": 19,
+    "dy": 14
+  },
+  "fits_configured_widths": true
+}

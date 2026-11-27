@@ -1,0 +1,21 @@
+############ Part 2: CONVENTIONAL baseline, 8 passes per weight set #############
+############ psum check: all 5832 psum words matched #############
+############ Verification Start during accumulation #############
+############ sfp_out check: all 1024 outputs (y0..y3) matched #############
+############ stored outputs in PMEM: all 1024 matched #############
+
+############ Cycle count (all 9 kij, 8 passes each) ############
+  L1 (XMEM) writes, act + weight     :   2674
+  kernel XMEM -> L0                  :     90
+  kernel loading to PEs (+intermiss.) :    171
+  activation XMEM -> L0              :  24192
+  execution (+array drain)           :  32400
+  OFIFO -> PMEM                      :  24192
+  per-kij reset                      :    117
+  SFU Y0..Y3 (hi<<4 + lo) + store    :  21504
+  total simulated cycles             : 105356
+RESULT passes=8 array=81162 sfu=21504 l1_write=2674 total=105356 errors=0
+
+############ No error detected ##############
+########### Project Completed !! ############
+core_tb_part2.v:589: $finish called at 105377000 (1ps)
